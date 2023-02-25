@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/config"
-	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/RaymondCode/simple-douyin/config"
+	"github.com/RaymondCode/simple-douyin/dao"
 	"github.com/dgrijalva/jwt-go"
 	"log"
 	"strconv"
@@ -11,6 +11,18 @@ import (
 )
 
 type UserServiceImpl struct {
+	FollowService
+	LikeService
+}
+
+// InsertTableUser 将tableUser插入表内
+func (usi *UserServiceImpl) InsertTableUser(tableUser *dao.TableUser) bool {
+	flag := dao.InsertTableUser(tableUser)
+	if flag == false {
+		log.Println("插入失败")
+		return false
+	}
+	return true
 }
 
 func (usi *UserServiceImpl) GetTableUserByUsername(name string) dao.TableUser {
@@ -56,4 +68,111 @@ func NewToken(u dao.TableUser) string {
 		println("generate token fail\n")
 		return "fail"
 	}
+}
+
+func (usi *UserServiceImpl) GetTableUserById(id int64) dao.TableUser {
+	tableUser, err := dao.GetTableUserById(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+		log.Println("User Not Found")
+		return tableUser
+	}
+	log.Println("Query User Success")
+	return tableUser
+}
+
+// GetUserById 未登录情况下,根据user_id获得User对象
+func (usi *UserServiceImpl) GetUserById(id int64) (User, error) {
+	user := User{
+		Id:             0,
+		Name:           "",
+		FollowCount:    0,
+		FollowerCount:  0,
+		IsFollow:       false,
+		TotalFavorited: 0,
+		FavoriteCount:  0,
+	}
+	tableUser, err := dao.GetTableUserById(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+		log.Println("User Not Found")
+		return user, err
+	}
+	log.Println("Query User Success")
+	followCount, _ := usi.GetFollowingCnt(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+	}
+	followerCount, _ := usi.GetFollowerCnt(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+	}
+	//u := GetLikeService() //解决循环依赖
+	//totalFavorited, _ := u.TotalFavourite(id)
+	//favoritedCount, _ := u.FavouriteVideoCount(id)
+	user = User{
+		Id:             id,
+		Name:           tableUser.Name,
+		FollowCount:    followCount,
+		FollowerCount:  followerCount,
+		IsFollow:       false,
+		TotalFavorited: 1,
+		FavoriteCount:  1,
+	}
+	return user, nil
+}
+
+// GetUserByIdWithCurId 已登录(curID)情况下,根据user_id获得User对象
+func (usi *UserServiceImpl) GetUserByIdWithCurId(id int64, curId int64) (User, error) {
+	user := User{
+		Id:             0,
+		Name:           "",
+		FollowCount:    0,
+		FollowerCount:  0,
+		IsFollow:       false,
+		TotalFavorited: 0,
+		FavoriteCount:  0,
+	}
+	tableUser, err := dao.GetTableUserById(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+		log.Println("User Not Found")
+		return user, err
+	}
+	log.Println("Query User Success")
+	followCount, err := usi.GetFollowingCnt(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+	}
+	followerCount, err := usi.GetFollowerCnt(id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+	}
+	isfollow, err := usi.IsFollowing(curId, id)
+	if err != nil {
+		log.Println("Err:", err.Error())
+	}
+	//u := GetLikeService() //解决循环依赖
+	//totalFavorited, _ := u.TotalFavourite(id)
+	//favoritedCount, _ := u.FavouriteVideoCount(id)
+	user = User{
+		Id:             id,
+		Name:           tableUser.Name,
+		FollowCount:    followCount,
+		FollowerCount:  followerCount,
+		IsFollow:       isfollow,
+		TotalFavorited: 1,
+		FavoriteCount:  1,
+	}
+	return user, nil
+}
+
+// GetTableUserList 获得全部TableUser对象
+func (usi *UserServiceImpl) GetTableUserList() []dao.TableUser {
+	tableUsers, err := dao.GetTableUserList()
+	if err != nil {
+		log.Println("Err:", err.Error())
+		return tableUsers
+	}
+	return tableUsers
 }

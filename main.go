@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/RaymondCode/simple-douyin/dao"
 	"github.com/gin-gonic/gin"
 )
 

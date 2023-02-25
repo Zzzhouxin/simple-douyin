@@ -2,7 +2,7 @@ package service
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/dao"
+	"github.com/RaymondCode/simple-douyin/dao"
 	"testing"
 )
 

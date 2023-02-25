@@ -14,6 +14,16 @@ func (tableUser TableUser) TableName() string {
 	return "users"
 }
 
+// GetTableUserList 获取全部TableUser对象
+func GetTableUserList() ([]TableUser, error) {
+	tableUsers := []TableUser{}
+	if err := Db.Find(&tableUsers).Error; err != nil {
+		log.Println(err.Error())
+		return tableUsers, err
+	}
+	return tableUsers, nil
+}
+
 func GetTableUserByUsername(name string) (TableUser, error) {
 	tabelUser := TableUser{}
 	if err := Db.Where("name = ?", name).First(&tabelUser).Error; err != nil {
@@ -21,4 +31,22 @@ func GetTableUserByUsername(name string) (TableUser, error) {
 		return TableUser{}, err
 	}
 	return tabelUser, nil
+}
+
+func GetTableUserById(id int64) (TableUser, error) {
+	tableUser := TableUser{}
+	if err := Db.Where("id = ?", id).First(&tableUser).Error; err != nil {
+		log.Println(err.Error())
+		return tableUser, err
+	}
+	return tableUser, nil
+}
+
+// InsertTableUser 将tableUser插入表内
+func InsertTableUser(tableUser *TableUser) bool {
+	if err := Db.Create(&tableUser).Error; err != nil {
+		log.Println(err.Error())
+		return false
+	}
+	return true
 }

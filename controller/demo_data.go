@@ -1,5 +1,7 @@
 package controller
 
+import "github.com/RaymondCode/simple-douyin/service"
+
 var DemoVideos = []Video{
 	{
 		Id:            1,
@@ -21,7 +23,7 @@ var DemoComments = []Comment{
 	},
 }
 
-var DemoUser = User{
+var DemoUser = service.User{
 	Id:            1,
 	Name:          "TestUser",
 	FollowCount:   0,

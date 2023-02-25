@@ -2,26 +2,20 @@ package controller
 
 import (
 	"fmt"
-	"github.com/RaymondCode/simple-demo/service"
+	"github.com/RaymondCode/simple-douyin/service"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 )
 
 // usersLoginInfo use map to store user info, and key is username+password for demo
 // user data will be cleared every time the server starts
 // test data: username=zhanglei, password=douyin
-var usersLoginInfo = map[string]User{
-	"zhangleidouyin": {
-		Id:   1,
-		Name: "zhanglei",
 
-		FollowCount:   10,
-		FollowerCount: 5,
-		IsFollow:      true,
-	},
+type Response struct {
+	StatusCode int32  `json:"status_code"`
+	StatusMsg  string `json:"status_msg,omitempty"`
 }
-
-var userIdSequence = int64(1)
 
 type UserLoginResponse struct {
 	Response
@@ -31,7 +25,7 @@ type UserLoginResponse struct {
 
 type UserResponse struct {
 	Response
-	User User `json:"user"`
+	User service.User `json:"user"`
 }
 
 //func Register(c *gin.Context) {
@@ -83,17 +77,24 @@ func Login(c *gin.Context) {
 	}
 }
 
-//func UserInfo(c *gin.Context) {
-//	token := c.Query("token")
-//
-//	if user, exist := usersLoginInfo[token]; exist {
-//		c.JSON(http.StatusOK, UserResponse{
-//			Response: Response{StatusCode: 0},
-//			User:     user,
-//		})
-//	} else {
-//		c.JSON(http.StatusOK, UserResponse{
-//			Response: Response{StatusCode: 1, StatusMsg: "User doesn't exist"},
-//		})
-//	}
-//}
+// UserInfo GET douyin/user/ 用户信息
+func UserInfo(c *gin.Context) {
+	user_id := c.Query("user_id")
+	id, _ := strconv.ParseInt(user_id, 10, 64)
+
+	usi := service.UserServiceImpl{
+		FollowService: &service.FollowServiceImp{},
+		LikeService:   &service.LikeServiceImpl{},
+	}
+
+	if u, err := usi.GetUserById(id); err != nil {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 1, StatusMsg: "User Doesn't Exist"},
+		})
+	} else {
+		c.JSON(http.StatusOK, UserResponse{
+			Response: Response{StatusCode: 0},
+			User:     u,
+		})
+	}
+}
